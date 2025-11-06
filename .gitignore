@@ -53,3 +53,5 @@ cluster_vis.*
 
 # Environment variables
 .env
+
+.python-version
