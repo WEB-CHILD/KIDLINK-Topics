@@ -83,7 +83,7 @@ print("Step 6: Printing cluster results...")
 print("\n" + "="*70)
 for cluster_id in range(num_clusters):
     cluster_docs = df_clustered[df_clustered.cluster == cluster_id]['document'].tolist()
-    keywords = get_keywords(cluster_docs, n=10)
+    keywords = get_keywords(cluster_docs, n=20)
     print(f"\nCluster {cluster_id} ({len(cluster_docs)} docs)")
     print(f"Keywords: {', '.join(keywords)}")
     if cluster_docs:
