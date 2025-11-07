@@ -7,50 +7,35 @@ Usage:
 """
 import pandas as pd
 import numpy as np
-import nltk
+import torch
 from sentence_transformers import SentenceTransformer
 from sklearn.cluster import KMeans
-from sklearn.feature_extraction.text import TfidfVectorizer, ENGLISH_STOP_WORDS
-from nltk.corpus import stopwords
+from sklearn.feature_extraction.text import TfidfVectorizer
+from utils import load_csv, load_custom_stopwords, remove_stopwords, save_array_to_json
+
+
+# Set PyTorch to use MPS (Metal Performance Shaders) for M4 GPU acceleration
+if torch.backends.mps.is_available():
+    device = "mps"
+    print("✓ Using Apple Silicon GPU (MPS) for acceleration\n")
+else:
+    device = "cpu"
+    print("⚠ MPS not available, using CPU\n")
 
 # 1. Load CSV
-print("Step 1: Loading CSV file...")
-df = pd.read_csv("solrwayback_kidlink-org-dk.csv")
-documents = df['content'].dropna().tolist()
-print(f"✓ Loaded {len(documents)} documents\n")
+documents = load_csv("data/solrwayback_kidlink-org-dk.csv")
+
 
 # 2. Remove stopwords (Danish, Norwegian, English, Spanish)
 print("Step 2: Removing stopwords from documents...")
-# Ensure NLTK stopwords are available
-try:
-    nltk.data.find("corpora/stopwords")
-except LookupError:
-    nltk.download("stopwords")
+combined_stopwords = load_custom_stopwords()
 
-# Build combined stopword set
-danish_sw = set(stopwords.words("danish"))
-norwegian_sw = set(stopwords.words("norwegian"))
-spanish_sw = set(stopwords.words("spanish"))
-english_sw = set(stopwords.words("english"))
-german_sw = set(stopwords.words("german"))
-italian_sw = set(stopwords.words("italian"))
-portuguese_sw = set(stopwords.words("portuguese"))
-combined_stopwords = set(w.lower() for w in (ENGLISH_STOP_WORDS | english_sw | danish_sw | norwegian_sw | spanish_sw | german_sw | italian_sw | portuguese_sw))
-
-def remove_stopwords(text):
-    """Remove stopwords from text, tokenizing on whitespace."""
-    if not isinstance(text, str):
-        return ""
-    tokens = [t.lower() for t in text.split() if t.lower() and t.lower() not in combined_stopwords]
-    filtered = " ".join(tokens)
-    return filtered if filtered.strip() else text
-
-documents_filtered = [remove_stopwords(doc) for doc in documents]
+documents_filtered = [remove_stopwords(doc, combined_stopwords) for doc in documents]
 print(f"✓ Stopwords removed\n")
 
 # 3. Create embeddings
 print("Step 3: Creating embeddings with SentenceTransformer...")
-model = SentenceTransformer("all-MiniLM-L6-v2")
+model = SentenceTransformer("all-MiniLM-L6-v2", device=device) 
 embeddings = model.encode(documents_filtered, show_progress_bar=True, batch_size=64, convert_to_numpy=True)
 print(f"✓ Created embeddings with shape {embeddings.shape}\n")
 
@@ -69,7 +54,7 @@ def get_keywords(docs, n=10):
     """Extract top n TF-IDF keywords from document list."""
     if not docs:
         return []
-    vectorizer = TfidfVectorizer(max_features=5000, stop_words='english')
+    vectorizer = TfidfVectorizer(max_features=5000, stop_words=list(combined_stopwords))
     X = vectorizer.fit_transform(docs)
     if X.shape[1] == 0:
         return []
@@ -78,15 +63,31 @@ def get_keywords(docs, n=10):
     return np.array(vectorizer.get_feature_names_out())[indices].tolist()
 
 # 6. Print results
-print("✓ Keyword extraction complete\n")
-print("Step 6: Printing cluster results...")
+cluster_data = []
+
 print("\n" + "="*70)
 for cluster_id in range(num_clusters):
     cluster_docs = df_clustered[df_clustered.cluster == cluster_id]['document'].tolist()
     keywords = get_keywords(cluster_docs, n=20)
+    
+    # Store cluster info
+    cluster_info = {
+        'cluster_id': cluster_id,
+        'num_docs': len(cluster_docs),
+        'keywords': keywords,
+        'sample': str(cluster_docs[0])[:150].replace('\n', ' ') + "..." if cluster_docs else ""
+    }
+    cluster_data.append(cluster_info)
+    
+    # Print to console
     print(f"\nCluster {cluster_id} ({len(cluster_docs)} docs)")
     print(f"Keywords: {', '.join(keywords)}")
     if cluster_docs:
-        sample = str(cluster_docs[0])[:150].replace('\n', ' ')
-        print(f"Sample: {sample}...")
+        print(f"Sample: {cluster_info['sample']}")
     print("-" * 70)
+
+# Save to file
+output_file = "data/cluster_keywords.json"
+save_array_to_json(cluster_data, output_file)
+
+
