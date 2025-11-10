@@ -16,6 +16,8 @@ from sentence_transformers import SentenceTransformer
 from sklearn.feature_extraction.text import CountVectorizer
 from utils import load_csv, load_custom_stopwords, remove_stopwords, save_array_to_json
 
+MIN_DOCUMENTS_PR_TOPIC = 100  # Minimum documents for a created topic
+
 # Set PyTorch to use MPS (Metal Performance Shaders) for M4 GPU acceleration
 if torch.backends.mps.is_available():
     device = "mps"
@@ -25,7 +27,7 @@ else:
     print("⚠ MPS not available, using CPU\n")
 
 # 1. Load CSV
-documents = load_csv("solrwayback_kidlink-org-dk.csv")
+documents = load_csv("data/solrwayback_kidlink-org-dk.csv")
 
 # 2. Remove stopwords (multilingual)
 print("Step 2: Removing stopwords from documents...")
@@ -54,7 +56,7 @@ vectorizer_model = CountVectorizer(
 topic_model = BERTopic(
     embedding_model=embedding_model,
     vectorizer_model=vectorizer_model,
-    min_topic_size=30,  # Minimum documents per topic
+    min_topic_size=MIN_DOCUMENTS_PR_TOPIC,  # Minimum documents per topic
     nr_topics="auto",  # Automatically determine number of topics
     calculate_probabilities=False,  # Faster without probabilities
     verbose=True
@@ -130,15 +132,15 @@ for topic in topic_data[:10]:  # Print top 10 topics
     print("-" * 70)
 
 # 9. Save to file
-output_file = "topic_model_results.json"
+output_file = "data/topic_model_results.json"
 save_array_to_json(topic_data, output_file)
 
 print(f"\n✓ Full results saved to {output_file}")
 
 # 10. Save the model for later use
 print("\nStep 8: Saving topic model...")
-topic_model.save("topic_model_bertopic")
-print("✓ Model saved to topic_model_bertopic/")
+topic_model.save("models/topic_model_bertopic")
+print("✓ Model saved to models/topic_model_bertopic/")
 
 print("\n" + "="*70)
 print("SUMMARY")
