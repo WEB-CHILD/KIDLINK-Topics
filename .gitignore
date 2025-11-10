@@ -50,6 +50,8 @@ models/
 *.png
 *.pdf
 cluster_vis.*
+/data/topic_model_results*
+/data/cluster_keywords*
 
 # Environment variables
 .env
