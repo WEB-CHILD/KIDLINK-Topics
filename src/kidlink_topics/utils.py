@@ -7,11 +7,18 @@ from nltk.corpus import stopwords
 
 
 def load_csv(file_path):
-    """Load documents from a CSV file and return a list of document contents."""
+    """Load documents from a CSV file and return a list of document contents and their IDs."""
     df = pd.read_csv(file_path)
-    documents = df['content'].dropna().tolist()
+    # Remove rows where content is NaN
+    df_clean = df.dropna(subset=['content'])
+    documents = df_clean['content'].tolist()
+    # Get IDs from the 'id' column, or use index if no 'id' column exists
+    if 'id' in df_clean.columns:
+        doc_ids = df_clean['id'].tolist()
+    else:
+        doc_ids = df_clean.index.tolist()
     print(f"✓ Loaded {len(documents)} documents\n")
-    return documents
+    return documents, doc_ids
 
 def load_custom_stopwords():
     """Load and return a combined set of stopwords from various languages and custom file."""

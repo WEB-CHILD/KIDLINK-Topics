@@ -58,7 +58,7 @@ import numpy as np
 import os
 
 print("Loading topic model results...")
-with open("data/topic_model_results_80_docs_50_keys_more_stops.json", 'r', encoding='utf-8') as f:
+with open("data/topic_model_results.json", 'r', encoding='utf-8') as f:
     topic_data = json.load(f)
 print(f"✓ Loaded {len(topic_data)} topics\n")
 

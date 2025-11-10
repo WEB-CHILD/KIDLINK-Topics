@@ -28,7 +28,7 @@ else:
     print("⚠ MPS not available, using CPU\n")
 
 # 1. Load CSV
-documents = load_csv("data/solrwayback_kidlink-org-dk.csv")
+documents, doc_ids = load_csv("data/solrwayback_kidlink-org-dk.csv")
 
 # 2. Remove stopwords (multilingual)
 print("Step 2: Removing stopwords from documents...")
@@ -106,13 +106,18 @@ for idx, row in topic_info.iterrows():
     else:
         sample = ""
     
+    # Get up to 80 document IDs for this topic from the CSV's 'id' column
+    # These can be used to look up original documents in the CSV later
+    document_ids = [doc_ids[idx] for idx in topic_docs_indices[:80]]
+    
     topic_entry = {
         'topic_id': int(topic_id),
         'num_docs': int(num_docs),
         'keywords': keywords,
         'keyword_scores': keyword_scores,
         'name': row.get('Name', f"Topic {topic_id}"),
-        'sample': sample
+        'sample': sample,
+        'document_ids': document_ids
     }
     topic_data.append(topic_entry)
 
