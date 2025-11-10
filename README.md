@@ -150,8 +150,11 @@ Custom stopwords are defined in `data/custom_stopwords.txt` and include:
 - Search-related terms (advanced, search)
 - Language-specific common words
 
-The system combines these with NLTK stopwords for:
-- Danish, Norwegian, English, Spanish, German, Italian, Portuguese
+The system combines these with NLTK stopwords for **14 languages**:
+
+- Danish, Norwegian, English, Spanish, German, Italian, Portuguese, French, Swedish, Dutch, Finnish, Russian, Turkish, Arabic
+
+This comprehensive multilingual stopword coverage ensures that common words across all major KIDLINK languages are filtered out during topic modeling, allowing the algorithm to focus on meaningful content-specific terms.
 
 ### Iteration History
 

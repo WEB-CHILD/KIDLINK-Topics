@@ -21,7 +21,7 @@ def load_custom_stopwords():
     except LookupError:
         nltk.download("stopwords")
 
-    # Build combined stopword set
+    # Build combined stopword set - Highest priority languages
     danish_sw = set(stopwords.words("danish"))
     norwegian_sw = set(stopwords.words("norwegian"))
     spanish_sw = set(stopwords.words("spanish"))
@@ -29,6 +29,15 @@ def load_custom_stopwords():
     german_sw = set(stopwords.words("german"))
     italian_sw = set(stopwords.words("italian"))
     portuguese_sw = set(stopwords.words("portuguese"))
+    french_sw = set(stopwords.words("french"))
+    swedish_sw = set(stopwords.words("swedish"))
+    dutch_sw = set(stopwords.words("dutch"))
+    finnish_sw = set(stopwords.words("finnish"))
+    
+    # Medium priority additional languages
+    russian_sw = set(stopwords.words("russian"))
+    turkish_sw = set(stopwords.words("turkish"))
+    arabic_sw = set(stopwords.words("arabic"))
 
     # Load custom domain-specific stopwords from file
     custom_stopwords = set()
@@ -40,8 +49,15 @@ def load_custom_stopwords():
     except FileNotFoundError:
         print(f"  No custom stopwords file found (looked for {custom_stopwords_file})")
 
+    # Combine all stopwords into a single set
+    combined_stopwords = set(w.lower() for w in (
+        ENGLISH_STOP_WORDS | 
+        english_sw | danish_sw | norwegian_sw | spanish_sw | 
+        german_sw | italian_sw | portuguese_sw |
+        french_sw | swedish_sw | dutch_sw | finnish_sw |
+        russian_sw | turkish_sw | arabic_sw
+    )) | custom_stopwords 
 
-    combined_stopwords = set(w.lower() for w in (ENGLISH_STOP_WORDS | english_sw | danish_sw | norwegian_sw | spanish_sw | german_sw | italian_sw | portuguese_sw)) | custom_stopwords 
     return combined_stopwords
 
 def remove_stopwords(text, combined_stopwords):
