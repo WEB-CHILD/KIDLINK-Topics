@@ -17,6 +17,7 @@ from sklearn.feature_extraction.text import CountVectorizer
 from utils import load_csv, load_custom_stopwords, remove_stopwords, save_array_to_json
 
 MIN_DOCUMENTS_PR_TOPIC = 80  # Minimum documents for a created topic
+AMOUNT_OF_KEYWORDS_PR_TOPIC = 50  # Number of keywords to extract per topic
 
 # Set PyTorch to use MPS (Metal Performance Shaders) for M4 GPU acceleration
 if torch.backends.mps.is_available():
@@ -59,6 +60,7 @@ topic_model = BERTopic(
     min_topic_size=MIN_DOCUMENTS_PR_TOPIC,  # Minimum documents per topic
     nr_topics="auto",  # Automatically determine number of topics
     calculate_probabilities=False,  # Faster without probabilities
+    top_n_words=AMOUNT_OF_KEYWORDS_PR_TOPIC,  # Generate 50 keywords per topic
     verbose=True
 )
 print(f"✓ BERTopic model configured\n")
@@ -87,8 +89,8 @@ for idx, row in topic_info.iterrows():
     # Get top words for this topic
     topic_words = topic_model.get_topic(topic_id)
     if topic_words:
-        keywords = [word for word, score in topic_words[:50]]  # Top 50 keywords
-        keyword_scores = {word: float(score) for word, score in topic_words[:50]}
+        keywords = [word for word, score in topic_words[:AMOUNT_OF_KEYWORDS_PR_TOPIC]]
+        keyword_scores = {word: float(score) for word, score in topic_words[:AMOUNT_OF_KEYWORDS_PR_TOPIC]}
     else:
         keywords = []
         keyword_scores = {}
@@ -127,7 +129,7 @@ print("="*70)
 for topic in topic_data[:10]:  # Print top 10 topics
     print(f"\nTopic {topic['topic_id']}: {topic['name']}")
     print(f"Documents: {topic['num_docs']}")
-    print(f"Keywords: {', '.join(topic['keywords'][:50])}")
+    print(f"Keywords: {', '.join(topic['keywords'][:AMOUNT_OF_KEYWORDS_PR_TOPIC])}")
     print(f"Sample: {topic['sample']}")
     print("-" * 70)
 
