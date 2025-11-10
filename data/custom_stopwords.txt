@@ -109,3 +109,6 @@ faq
 post
 posted
 
+search
+advanced
+
