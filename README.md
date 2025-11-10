@@ -1,4 +1,5 @@
-# KIDLINKTopics
+# KIDLINKTopics: Multilingual Topic Model of KIDLINK Sources from the Internet Archive
+[![DOI](https://zenodo.org/badge/1093360374.svg)](https://doi.org/10.5281/zenodo.17571565)
 
 Multilingual topic modeling analysis of archived webpages from KIDLINK extracted from the Internet Archive.
 The topic model is made using BERTopic and transformer-based embeddings.
@@ -204,4 +205,19 @@ When modifying the model configuration:
 
 1. Document changes in `MODEL_CHANGES.md`
 2. Note parameter values and resulting topic counts
+
+## How to Cite
+
+If you use this project in your research, please cite it using the following BibTeX entry:
+
+```bibtex
+@software{kidlink_topics_2025,
+  author       = {{Johnston, Victor Harbo}},
+  title        = {KIDLINKTopics: Multilingual Topic Model of KIDLINK Sources from the Internet Archive},
+  year         = {2025},
+  publisher    = {Zenodo},
+  doi          = {10.5281/zenodo.17571565},
+  url          = {https://github.com/WEB-CHILD/KIDLINK-Topics}
+}
+```
 
