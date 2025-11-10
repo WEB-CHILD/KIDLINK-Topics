@@ -16,7 +16,7 @@ from sentence_transformers import SentenceTransformer
 from sklearn.feature_extraction.text import CountVectorizer
 from utils import load_csv, load_custom_stopwords, remove_stopwords, save_array_to_json
 
-MIN_DOCUMENTS_PR_TOPIC = 100  # Minimum documents for a created topic
+MIN_DOCUMENTS_PR_TOPIC = 80  # Minimum documents for a created topic
 
 # Set PyTorch to use MPS (Metal Performance Shaders) for M4 GPU acceleration
 if torch.backends.mps.is_available():
@@ -87,8 +87,8 @@ for idx, row in topic_info.iterrows():
     # Get top words for this topic
     topic_words = topic_model.get_topic(topic_id)
     if topic_words:
-        keywords = [word for word, score in topic_words[:20]]  # Top 20 keywords
-        keyword_scores = {word: float(score) for word, score in topic_words[:20]}
+        keywords = [word for word, score in topic_words[:50]]  # Top 50 keywords
+        keyword_scores = {word: float(score) for word, score in topic_words[:50]}
     else:
         keywords = []
         keyword_scores = {}
@@ -127,7 +127,7 @@ print("="*70)
 for topic in topic_data[:10]:  # Print top 10 topics
     print(f"\nTopic {topic['topic_id']}: {topic['name']}")
     print(f"Documents: {topic['num_docs']}")
-    print(f"Keywords: {', '.join(topic['keywords'][:10])}")
+    print(f"Keywords: {', '.join(topic['keywords'][:50])}")
     print(f"Sample: {topic['sample']}")
     print("-" * 70)
 
