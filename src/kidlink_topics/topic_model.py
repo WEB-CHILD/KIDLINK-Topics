@@ -21,13 +21,8 @@ from utils import load_csv, load_custom_stopwords, remove_stopwords, save_array_
 MIN_DOCUMENTS_PR_TOPIC = 80  # Minimum documents for a created topic
 AMOUNT_OF_KEYWORDS_PR_TOPIC = 50  # Number of keywords to extract per topic
 
-# Set PyTorch to use MPS (Metal Performance Shaders) for M4 GPU acceleration
-if torch.backends.mps.is_available():
-    device = "mps"
-    print("✓ Using Apple Silicon GPU (MPS) for acceleration\n")
-else:
-    device = "cpu"
-    print("⚠ MPS not available, using CPU\n")
+# Detect and use best available device (CUDA for NVIDIA, MPS for Apple Silicon, CPU fallback)
+device = get_device()
 
 # 1. Load CSV
 documents, doc_ids = load_csv("data/solrwayback_kidlink-org-dk.csv")

@@ -95,3 +95,29 @@ def save_figure(filepath, fig, **kwargs):
     if os.path.exists(filepath):
         print(f"⚠ Overwriting existing file: {filepath}")
     fig.savefig(filepath, **kwargs)
+
+def get_device():
+    """Detect and return the best available device for PyTorch computation.
+    
+    Returns:
+        str: Device string ('cuda', 'mps', or 'cpu')
+    """
+    import torch
+    
+    # Check for NVIDIA CUDA (Linux/Windows with NVIDIA GPU)
+    if torch.cuda.is_available():
+        device = "cuda"
+        device_name = torch.cuda.get_device_name(0)
+        print(f"✓ Using NVIDIA GPU: {device_name}\n")
+        return device
+    
+    # Check for Apple Silicon GPU (macOS with M1/M2/M3/M4)
+    if torch.backends.mps.is_available():
+        device = "mps"
+        print("✓ Using Apple Silicon GPU (MPS) for acceleration\n")
+        return device
+    
+    # Fall back to CPU
+    device = "cpu"
+    print("⚠ No GPU available, using CPU\n")
+    return device

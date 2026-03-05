@@ -66,9 +66,18 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 ```
 
 3. Install required packages:
+
+**For CPU or Apple Silicon (M1/M2/M3/M4):**
 ```bash
 pip install pandas numpy torch bertopic sentence-transformers scikit-learn nltk matplotlib wordcloud
 ```
+
+**For NVIDIA GPU (Ubuntu/Linux):**
+```bash
+pip install pandas numpy bertopic sentence-transformers scikit-learn nltk matplotlib wordcloud
+pip install torch --index-url https://download.pytorch.org/whl/cu121
+```
+(For other CUDA versions, replace `cu121` accordingly)
 
 4. Download NLTK stopwords (first run only):
 ```python
@@ -193,13 +202,18 @@ Topic model results are saved in JSON format:
 
 ## Hardware Acceleration
 
-The project automatically detects and uses Apple Silicon GPU (MPS) when available:
+The project automatically detects and uses the best available GPU:
 
+- **NVIDIA CUDA**: On Linux/Windows with NVIDIA GPUs (requires CUDA toolkit)
+- **Apple Silicon (MPS)**: On macOS with M1/M2/M3/M4 chips
+- **CPU**: Falls back to CPU processing if no GPU is available
+
+Example output:
 ```
-✓ Using Apple Silicon GPU (MPS) for acceleration
+✓ Using NVIDIA GPU: NVIDIA RTX 4090
 ```
 
-On non-Apple Silicon systems, it falls back to CPU processing.
+No configuration needed—the script detects your hardware automatically and uses the fastest available option.
 
 ## Contributing
 
