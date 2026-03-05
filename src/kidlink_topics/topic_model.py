@@ -16,7 +16,7 @@ import torch
 from bertopic import BERTopic
 from sentence_transformers import SentenceTransformer
 from sklearn.feature_extraction.text import CountVectorizer
-from utils import load_csv, load_custom_stopwords, remove_stopwords, save_array_to_json
+from utils import load_csv, load_custom_stopwords, remove_stopwords, save_array_to_json, get_device
 
 MIN_DOCUMENTS_PR_TOPIC = 80  # Minimum documents for a created topic
 AMOUNT_OF_KEYWORDS_PR_TOPIC = 50  # Number of keywords to extract per topic
