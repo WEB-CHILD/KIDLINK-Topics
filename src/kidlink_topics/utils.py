@@ -121,3 +121,4 @@ def get_device():
     device = "cpu"
     print("⚠ No GPU available, using CPU\n")
     return device
+
