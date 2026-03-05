@@ -8,6 +8,8 @@ This model is multilingual and aims at producing topics across languages.
 Usage:
     python topic_model.py
 """
+import os
+import shutil
 import pandas as pd
 import numpy as np
 import torch
@@ -146,8 +148,15 @@ print(f"\n✓ Full results saved to {output_file}")
 
 # 10. Save the model for later use
 print("\nStep 8: Saving topic model...")
-topic_model.save("models/topic_model_bertopic")
-print("✓ Model saved to models/topic_model_bertopic/")
+model_path = "models/topic_model_bertopic"
+# Create models directory if it doesn't exist
+os.makedirs(os.path.dirname(model_path) or ".", exist_ok=True)
+# Remove existing model if it exists to avoid conflicts
+if os.path.exists(model_path):
+    shutil.rmtree(model_path)
+    print(f"⚠ Removed existing model directory: {model_path}")
+topic_model.save(model_path)
+print(f"✓ Model saved to {model_path}/")
 
 print("\n" + "="*70)
 print("SUMMARY")

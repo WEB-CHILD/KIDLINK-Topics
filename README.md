@@ -77,6 +77,8 @@ python -c "import nltk; nltk.download('stopwords')"
 
 ## Usage
 
+**Note:** Required directories (`models/`, `visualisations/`) are created automatically when you run the scripts, so no manual setup is needed.
+
 ### 1. Generate Topic Model
 
 Run the main topic modeling script to analyze the KIDLINK extraction from SolrWayback:

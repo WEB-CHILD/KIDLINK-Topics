@@ -81,3 +81,17 @@ def save_array_to_json(array, file_path):
     with open(file_path, 'w', encoding='utf-8') as f:
         json.dump(array, f, ensure_ascii=False, indent=4)
     print(f"✓ Saved data to {file_path}\n")
+
+def save_figure(filepath, fig, **kwargs):
+    """Save matplotlib figure with automatic directory creation and overwrite warning.
+    
+    Args:
+        filepath: Path where figure should be saved
+        fig: Matplotlib figure object
+        **kwargs: Additional arguments to pass to fig.savefig()
+    """
+    import os
+    os.makedirs(os.path.dirname(filepath) or ".", exist_ok=True)
+    if os.path.exists(filepath):
+        print(f"⚠ Overwriting existing file: {filepath}")
+    fig.savefig(filepath, **kwargs)
