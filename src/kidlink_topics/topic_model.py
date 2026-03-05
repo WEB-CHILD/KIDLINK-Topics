@@ -1,14 +1,17 @@
 #!/usr/bin/env python3
 """
-Multilingual topic modeling for solrwayback_kidlink-org-dk.csv using BERTopic
+Multilingual topic modeling using BERTopic
 
 This model is multilingual and aims at producing topics across languages.
 
 
 Usage:
-    python topic_model.py
+    python topic_model.py [CSV_PATH]
+    
+    CSV_PATH: Path to the CSV file (default: data/docs.csv)
 """
 import os
+import sys
 import shutil
 import pandas as pd
 import numpy as np
@@ -24,8 +27,11 @@ AMOUNT_OF_KEYWORDS_PR_TOPIC = 50  # Number of keywords to extract per topic
 # Detect and use best available device (CUDA for NVIDIA, MPS for Apple Silicon, CPU fallback)
 device = get_device()
 
+# Parse command-line argument for CSV path
+csv_path = sys.argv[1] if len(sys.argv) > 1 else "data/docs.csv"
+
 # 1. Load CSV
-documents, doc_ids = load_csv("data/solrwayback_kidlink-org-dk.csv")
+documents, doc_ids = load_csv(csv_path)
 
 # 2. Remove stopwords (multilingual)
 print("Step 2: Removing stopwords from documents...")
