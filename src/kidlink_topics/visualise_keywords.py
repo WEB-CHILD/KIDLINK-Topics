@@ -9,6 +9,8 @@ import json
 import matplotlib.pyplot as plt
 from wordcloud import WordCloud
 import numpy as np
+import os
+from utils import save_figure
 
 print("Loading cluster keywords...")
 with open("data/cluster_keywords.json", 'r', encoding='utf-8') as f:
@@ -16,7 +18,6 @@ with open("data/cluster_keywords.json", 'r', encoding='utf-8') as f:
 print(f"✓ Loaded {len(cluster_data)} clusters\n")
 
 # Create output directory structure
-import os
 os.makedirs('visualisations/wordclouds', exist_ok=True)
 
 # 1. Generate wordclouds for each cluster
@@ -47,7 +48,7 @@ for i in range(num_clusters, len(axes)):
     axes[i].axis('off')
 
 plt.tight_layout()
-plt.savefig('visualisations/wordclouds_all_clusters.png', dpi=150, bbox_inches='tight')
+save_figure('visualisations/wordclouds_all_clusters.png', fig, dpi=150, bbox_inches='tight')
 print(f"✓ Saved visualisations/wordclouds_all_clusters.png\n")
 plt.close()
 
@@ -67,7 +68,7 @@ ax.set_xlabel('Number of Documents')
 ax.set_title('Cluster Sizes and Top 5 Keywords')
 ax.invert_yaxis()
 plt.tight_layout()
-plt.savefig('visualisations/cluster_overview.png', dpi=150, bbox_inches='tight')
+save_figure('visualisations/cluster_overview.png', fig, dpi=150, bbox_inches='tight')
 print(f"✓ Saved visualisations/cluster_overview.png\n")
 plt.close()
 
@@ -87,8 +88,9 @@ for cluster in cluster_data:
               fontsize=14, fontweight='bold')
     plt.axis('off')
     plt.tight_layout()
-    plt.savefig(f"visualisations/wordclouds/cluster_{cluster['cluster_id']:02d}.png", 
-                dpi=150, bbox_inches='tight')
+    fig = plt.gcf()
+    save_figure(f"visualisations/wordclouds/cluster_{cluster['cluster_id']:02d}.png", 
+                fig, dpi=150, bbox_inches='tight')
     plt.close()
 
 print(f"✓ Saved individual wordclouds to visualisations/wordclouds/ directory\n")

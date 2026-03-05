@@ -56,6 +56,7 @@ import matplotlib.pyplot as plt
 from wordcloud import WordCloud
 import numpy as np
 import os
+from utils import save_figure
 
 print("Loading topic model results...")
 with open("data/topic_model_results.json", 'r', encoding='utf-8') as f:
@@ -97,7 +98,7 @@ for i in range(num_topics, len(axes)):
     axes[i].axis('off')
 
 plt.tight_layout()
-plt.savefig('visualisations/topics/wordclouds_all_topics.png', dpi=150, bbox_inches='tight')
+save_figure('visualisations/topics/wordclouds_all_topics.png', fig, dpi=150, bbox_inches='tight')
 print(f"✓ Saved visualisations/topics/wordclouds_all_topics.png\n")
 plt.close()
 
@@ -121,7 +122,7 @@ ax.set_title('Topic Sizes and Top 5 Keywords', fontsize=12, fontweight='bold')
 ax.invert_yaxis()
 ax.grid(axis='x', alpha=0.3, linestyle='--')
 plt.tight_layout()
-plt.savefig('visualisations/topics/topic_overview.png', dpi=150, bbox_inches='tight')
+save_figure('visualisations/topics/topic_overview.png', fig, dpi=150, bbox_inches='tight')
 print(f"✓ Saved visualisations/topics/topic_overview.png\n")
 plt.close()
 
@@ -153,7 +154,7 @@ for autotext in autotexts:
 
 ax.set_title('Topic Distribution (Top 10 Topics)', fontsize=14, fontweight='bold')
 plt.tight_layout()
-plt.savefig('visualisations/topics/topic_distribution.png', dpi=150, bbox_inches='tight')
+save_figure('visualisations/topics/topic_distribution.png', fig, dpi=150, bbox_inches='tight')
 print(f"✓ Saved visualisations/topics/topic_distribution.png\n")
 plt.close()
 
@@ -178,8 +179,9 @@ for topic in topic_data:
               fontsize=14, fontweight='bold')
     plt.axis('off')
     plt.tight_layout()
-    plt.savefig(f"visualisations/topics/wordclouds/topic_{topic['topic_id']:02d}.png", 
-                dpi=150, bbox_inches='tight')
+    fig = plt.gcf()
+    save_figure(f"visualisations/topics/wordclouds/topic_{topic['topic_id']:02d}.png", 
+                fig, dpi=150, bbox_inches='tight')
     plt.close()
 
 print(f"✓ Saved individual wordclouds to visualisations/topics/wordclouds/ directory\n")
@@ -237,7 +239,7 @@ cbar.ax.set_ylabel("Keyword Importance", rotation=-90, va="bottom")
 
 ax.set_title("Top 10 Topics - Keyword Importance Heatmap", fontsize=12, fontweight='bold')
 fig.tight_layout()
-plt.savefig('visualisations/topics/keyword_heatmap.png', dpi=150, bbox_inches='tight')
+save_figure('visualisations/topics/keyword_heatmap.png', fig, dpi=150, bbox_inches='tight')
 print(f"✓ Saved visualisations/topics/keyword_heatmap.png\n")
 plt.close()
 
