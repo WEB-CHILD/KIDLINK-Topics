@@ -148,8 +148,11 @@ model_path = "models/topic_model_bertopic"
 os.makedirs(os.path.dirname(model_path) or ".", exist_ok=True)
 # Remove existing model if it exists to avoid conflicts
 if os.path.exists(model_path):
-    shutil.rmtree(model_path)
-    print(f"⚠ Removed existing model directory: {model_path}")
+    if os.path.isdir(model_path):
+        shutil.rmtree(model_path)
+    else:
+        os.remove(model_path)
+    print(f"⚠ Removed existing model: {model_path}")
 topic_model.save(model_path)
 print(f"✓ Model saved to {model_path}/")
 
