@@ -17,8 +17,12 @@ import pandas as pd
 import numpy as np
 import torch
 from bertopic import BERTopic
+from bertopic.representation import KeyBERTInspired
 from sentence_transformers import SentenceTransformer
 from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.decomposition import PCA
+from umap import UMAP
+from hdbscan import HDBSCAN
 from utils import load_csv, load_custom_stopwords, remove_stopwords, save_array_to_json, get_device
 
 MIN_DOCUMENTS_PR_TOPIC = 80  # Minimum documents for a created topic
@@ -41,8 +45,9 @@ print(f"✓ Stopwords removed\n")
 
 # 3. Create multilingual embedding model
 print("Step 3: Loading multilingual embedding model...")
-# Use multilingual model that supports Danish, Norwegian, English, Spanish, etc.
-embedding_model = SentenceTransformer("paraphrase-multilingual-MiniLM-L12-v2", device=device)
+# Use BGE-M3: state-of-the-art multilingual embedding model
+# Supports 100+ languages including Danish, Norwegian, English, Spanish, etc.
+embedding_model = SentenceTransformer("BAAI/bge-m3", device=device)
 print(f"✓ Model loaded on {device}\n")
 
 # 4. Create BERTopic model with custom settings
@@ -56,17 +61,38 @@ vectorizer_model = CountVectorizer(
     min_df=5  # Ignore rare terms
 )
 
+# Configure UMAP for dimensionality reduction
+umap_model = UMAP(
+    n_neighbors=15,
+    n_components=5,
+    min_dist=0.0,
+    metric='cosine',
+    random_state=42
+)
+
+# Configure HDBSCAN for clustering
+hdbscan_model = HDBSCAN(
+    min_cluster_size=MIN_DOCUMENTS_PR_TOPIC,
+    metric='euclidean',
+    cluster_selection_method='eom'
+)
+
+# Configure KeyBERTInspired representation model for better topic labels
+representation_model = KeyBERTInspired()
+
 # Initialize BERTopic with custom settings
 topic_model = BERTopic(
     embedding_model=embedding_model,
     vectorizer_model=vectorizer_model,
-    min_topic_size=MIN_DOCUMENTS_PR_TOPIC,  # Minimum documents per topic
+    umap_model=umap_model,
+    hdbscan_model=hdbscan_model,
+    representation_model=representation_model,
     nr_topics="auto",  # Automatically determine number of topics
     calculate_probabilities=False,  # Faster without probabilities
     top_n_words=AMOUNT_OF_KEYWORDS_PR_TOPIC,  # Generate 50 keywords per topic
     verbose=True
 )
-print(f"✓ BERTopic model configured\n")
+print(f"✓ BERTopic model configured with UMAP + HDBSCAN + KeyBERTInspired\n")
 
 # 5. Fit topic model
 print("Step 5: Fitting topic model (this may take a while)...")
