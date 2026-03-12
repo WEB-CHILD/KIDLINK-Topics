@@ -9,6 +9,13 @@ Usage:
     python topic_model.py [CSV_PATH]
     
     CSV_PATH: Path to the CSV file (default: data/docs.csv)
+
+Required CSV columns:
+- `content`: The text content of each document (string). Rows with empty `content` are dropped.
+- `id` (optional): A unique identifier for each document. If absent, the script will use the CSV row index as the document ID.
+
+Example CSV header:
+    id,content
 """
 import os
 import sys
