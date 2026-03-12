@@ -16,18 +16,13 @@ import torch
 from bertopic import BERTopic
 from sentence_transformers import SentenceTransformer
 from sklearn.feature_extraction.text import CountVectorizer
-from utils import load_csv, load_custom_stopwords, remove_stopwords, save_array_to_json
+from utils import load_csv, load_custom_stopwords, remove_stopwords, save_array_to_json, get_device
 
 MIN_DOCUMENTS_PR_TOPIC = 80  # Minimum documents for a created topic
 AMOUNT_OF_KEYWORDS_PR_TOPIC = 50  # Number of keywords to extract per topic
 
-# Set PyTorch to use MPS (Metal Performance Shaders) for M4 GPU acceleration
-if torch.backends.mps.is_available():
-    device = "mps"
-    print("✓ Using Apple Silicon GPU (MPS) for acceleration\n")
-else:
-    device = "cpu"
-    print("⚠ MPS not available, using CPU\n")
+# Detect and use best available device (CUDA for NVIDIA, MPS for Apple Silicon, CPU fallback)
+device = get_device()
 
 # 1. Load CSV
 documents, doc_ids = load_csv("data/solrwayback_kidlink-org-dk.csv")
@@ -41,8 +36,9 @@ print(f"✓ Stopwords removed\n")
 # 3. Create multilingual embedding model
 print("Step 3: Loading multilingual embedding model...")
 # Use multilingual model that supports Danish, Norwegian, English, Spanish, etc.
-embedding_model = SentenceTransformer("paraphrase-multilingual-MiniLM-L12-v2", device=device)
-print(f"✓ Model loaded on {device}\n")
+# `get_device()` now returns a `Device` enum; pass its string value to the model.
+embedding_model = SentenceTransformer("paraphrase-multilingual-MiniLM-L12-v2", device=device.value)
+print(f"✓ Model loaded on {device.value}\n")
 
 # 4. Create BERTopic model with custom settings
 print("Step 4: Configuring BERTopic model...")
