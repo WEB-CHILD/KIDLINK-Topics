@@ -122,3 +122,22 @@ def get_device():
     print("⚠ No GPU available, using CPU\n")
     return device
 
+def get_output_paths(domain_prefix=None):
+    """Generate output file paths with optional domain prefix.
+    
+    Args:
+        domain_prefix (str, optional): Domain prefix to add to filenames.
+                                      If None, uses default paths.
+    
+    Returns:
+        tuple: (output_json_path, output_model_path)
+    """
+    if domain_prefix:
+        output_json = f"data/{domain_prefix}_topic_model_results.json"
+        output_model = f"models/{domain_prefix}_topic_model_bertopic"
+    else:
+        output_json = "data/topic_model_results.json"
+        output_model = "models/topic_model_bertopic"
+    
+    return output_json, output_model
+

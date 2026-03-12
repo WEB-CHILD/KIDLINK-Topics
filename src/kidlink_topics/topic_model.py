@@ -6,9 +6,12 @@ This model is multilingual and aims at producing topics across languages.
 
 
 Usage:
-    python topic_model.py [CSV_PATH]
+    python topic_model.py [CSV_PATH] [--domain-prefix PREFIX]
     
     CSV_PATH: Path to the CSV file (default: data/docs.csv)
+    --domain-prefix PREFIX: Optional domain prefix for output filenames
+                           (e.g., "kidlink_org_dk"). If not provided,
+                           outputs use default names.
 
 Required CSV columns:
 - `content`: The text content of each document (string). Rows with empty `content` are dropped.
@@ -16,17 +19,23 @@ Required CSV columns:
 
 Example CSV header:
     id,content
+
+Examples:
+    python topic_model.py
+    python topic_model.py data/docs.csv
+    python topic_model.py data/docs.csv --domain-prefix kidlink_org_dk
 """
 import os
 import sys
 import shutil
+import argparse
 import pandas as pd
 import numpy as np
 import torch
 from bertopic import BERTopic
 from sentence_transformers import SentenceTransformer
 from sklearn.feature_extraction.text import CountVectorizer
-from utils import load_csv, load_custom_stopwords, remove_stopwords, save_array_to_json, get_device
+from utils import load_csv, load_custom_stopwords, remove_stopwords, save_array_to_json, get_device, get_output_paths
 
 MIN_DOCUMENTS_PR_TOPIC = 80  # Minimum documents for a created topic
 AMOUNT_OF_KEYWORDS_PR_TOPIC = 50  # Number of keywords to extract per topic
@@ -34,8 +43,14 @@ AMOUNT_OF_KEYWORDS_PR_TOPIC = 50  # Number of keywords to extract per topic
 # Detect and use best available device (CUDA for NVIDIA, MPS for Apple Silicon, CPU fallback)
 device = get_device()
 
-# Parse command-line argument for CSV path
-csv_path = sys.argv[1] if len(sys.argv) > 1 else "data/docs.csv"
+# Parse command-line arguments
+parser = argparse.ArgumentParser(description="Multilingual topic modeling using BERTopic")
+parser.add_argument("csv_path", nargs="?", default="data/docs.csv", help="Path to the CSV file (default: data/docs.csv)")
+parser.add_argument("--domain-prefix", type=str, default=None, help="Optional domain prefix for output filenames (e.g., 'kidlink_org_dk')")
+args = parser.parse_args()
+
+csv_path = args.csv_path
+domain_prefix = args.domain_prefix
 
 # 1. Load CSV
 documents, doc_ids = load_csv(csv_path)
@@ -149,14 +164,13 @@ for topic in topic_data[:10]:  # Print top 10 topics
     print("-" * 70)
 
 # 9. Save to file
-output_file = "data/topic_model_results.json"
+output_file, model_path = get_output_paths(domain_prefix)
 save_array_to_json(topic_data, output_file)
 
 print(f"\n✓ Full results saved to {output_file}")
 
 # 10. Save the model for later use
 print("\nStep 8: Saving topic model...")
-model_path = "models/topic_model_bertopic"
 # Create models directory if it doesn't exist
 os.makedirs(os.path.dirname(model_path) or ".", exist_ok=True)
 # Remove existing model if it exists to avoid conflicts
