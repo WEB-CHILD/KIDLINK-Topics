@@ -176,11 +176,19 @@ See `MODEL_CHANGES.md` for detailed history of model refinements and parameter a
 
 ### Input CSV
 
-Expected format for `data/solrwayback_kidlink-org-dk.csv`. The file should be created from a SolrWayback export with the fields CSV and content selected:
+The topic modeling scripts expect a CSV file with at least the following column:
+
+- `content`: The textual content of each document (string). Rows where `content` is empty or NaN are ignored.
+
+An optional `id` column may be provided:
+
+- `id` (optional): A unique identifier for each document. If not present, the script will use the CSV row index as the document ID.
+
+Expected example (SolrWayback export with `content` selected):
 ```csv
-content
-"Document text content here..."
-"Another document..."
+id,content
+12345,"Document text content here..."
+12346,"Another document..."
 ```
 
 ### Output JSON
