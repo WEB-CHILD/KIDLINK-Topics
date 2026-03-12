@@ -36,8 +36,9 @@ print(f"✓ Stopwords removed\n")
 # 3. Create multilingual embedding model
 print("Step 3: Loading multilingual embedding model...")
 # Use multilingual model that supports Danish, Norwegian, English, Spanish, etc.
-embedding_model = SentenceTransformer("paraphrase-multilingual-MiniLM-L12-v2", device=device)
-print(f"✓ Model loaded on {device}\n")
+# `get_device()` now returns a `Device` enum; pass its string value to the model.
+embedding_model = SentenceTransformer("paraphrase-multilingual-MiniLM-L12-v2", device=device.value)
+print(f"✓ Model loaded on {device.value}\n")
 
 # 4. Create BERTopic model with custom settings
 print("Step 4: Configuring BERTopic model...")
