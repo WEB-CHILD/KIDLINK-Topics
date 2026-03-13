@@ -123,15 +123,22 @@ python src/kidlink_topics/topic_model.py data/docs.csv --domain-prefix my_domain
 Generate comprehensive visualizations of the topic model results:
 
 ```bash
+# With default topic model results
 python src/kidlink_topics/visualise_topics.py
+
+# With domain-prefixed results (must match domain prefix from step 1)
+python src/kidlink_topics/visualise_topics.py --domain-prefix kidlink_org_dk
 ```
 
+**Command-line options:**
+- `--domain-prefix PREFIX`: Optional domain prefix to match your topic model results (e.g., `kidlink_org_dk`)
+
 **Generates:**
-- `wordclouds_all_topics.png`: Grid overview of all topics
-- `topic_overview.png`: Bar chart with document counts and top keywords
-- `topic_distribution.png`: Pie chart showing topic proportions
-- `keyword_heatmap.png`: Heatmap of keyword importance across topics
-- `wordclouds/topic_XX.png`: Individual high-resolution wordclouds
+- `{PREFIX_}wordclouds_all_topics.png`: Grid overview of all topics
+- `{PREFIX_}topic_overview.png`: Bar chart with document counts and top keywords
+- `{PREFIX_}topic_distribution.png`: Pie chart showing topic proportions
+- `{PREFIX_}keyword_heatmap.png`: Heatmap of keyword importance across topics
+- `wordclouds/{PREFIX_}topic_XX.png`: Individual high-resolution wordclouds
 
 ### 3. Explore Specific Topics
 

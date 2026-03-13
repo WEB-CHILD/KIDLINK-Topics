@@ -32,7 +32,7 @@ Visualizations Generated:
    - Useful for comparing keyword distributions across topics
 
 Input:
-    Expects JSON file at: data/topic_model_results_80_docs_50_keywords.json
+    Expects JSON file at: data/topic_model_results.json (or data/{PREFIX}_topic_model_results.json)
     Format: Array of topic objects with fields:
         - topic_id: Integer topic identifier
         - num_docs: Number of documents in topic
@@ -42,26 +42,39 @@ Input:
 
 Output:
     All visualizations saved to visualisations/topics/ directory:
-    - wordclouds_all_topics.png
-    - topic_overview.png
-    - topic_distribution.png
-    - keyword_heatmap.png
-    - wordclouds/topic_XX.png (one per topic)
+    - {PREFIX_}wordclouds_all_topics.png
+    - {PREFIX_}topic_overview.png
+    - {PREFIX_}topic_distribution.png
+    - {PREFIX_}keyword_heatmap.png
+    - wordclouds/{PREFIX_}topic_XX.png (one per topic)
 
 Usage:
     python visualise_topics.py
+    python visualise_topics.py --domain-prefix kidlink_org_dk
 """
 import json
+import argparse
 import matplotlib.pyplot as plt
 from wordcloud import WordCloud
 import numpy as np
 import os
-from utils import save_figure
+from utils import save_figure, get_topic_results_path
+
+# Parse command-line arguments
+parser = argparse.ArgumentParser(description="Generate topic model visualizations")
+parser.add_argument("--domain-prefix", type=str, default=None, help="Optional domain prefix for input/output filenames (e.g., 'kidlink_org_dk')")
+args = parser.parse_args()
+
+domain_prefix = args.domain_prefix
+
+# Determine input and output paths based on domain prefix
+input_json = get_topic_results_path(domain_prefix)
+output_prefix = f"{domain_prefix}_" if domain_prefix else ""
 
 print("Loading topic model results...")
-with open("data/topic_model_results.json", 'r', encoding='utf-8') as f:
+with open(input_json, 'r', encoding='utf-8') as f:
     topic_data = json.load(f)
-print(f"✓ Loaded {len(topic_data)} topics\n")
+print(f"✓ Loaded {len(topic_data)} topics from {input_json}\n")
 
 # Create output directory structure
 os.makedirs('visualisations/topics/wordclouds', exist_ok=True)
@@ -98,8 +111,8 @@ for i in range(num_topics, len(axes)):
     axes[i].axis('off')
 
 plt.tight_layout()
-save_figure('visualisations/topics/wordclouds_all_topics.png', fig, dpi=150, bbox_inches='tight')
-print(f"✓ Saved visualisations/topics/wordclouds_all_topics.png\n")
+save_figure(f'visualisations/topics/{output_prefix}wordclouds_all_topics.png', fig, dpi=150, bbox_inches='tight')
+print(f"✓ Saved visualisations/topics/{output_prefix}wordclouds_all_topics.png\n")
 plt.close()
 
 # 2. Topic sizes bar chart with top keywords
@@ -122,8 +135,8 @@ ax.set_title('Topic Sizes and Top 5 Keywords', fontsize=12, fontweight='bold')
 ax.invert_yaxis()
 ax.grid(axis='x', alpha=0.3, linestyle='--')
 plt.tight_layout()
-save_figure('visualisations/topics/topic_overview.png', fig, dpi=150, bbox_inches='tight')
-print(f"✓ Saved visualisations/topics/topic_overview.png\n")
+save_figure(f'visualisations/topics/{output_prefix}topic_overview.png', fig, dpi=150, bbox_inches='tight')
+print(f"✓ Saved visualisations/topics/{output_prefix}topic_overview.png\n")
 plt.close()
 
 # 3. Topic distribution pie chart (top 10 topics)
@@ -154,8 +167,8 @@ for autotext in autotexts:
 
 ax.set_title('Topic Distribution (Top 10 Topics)', fontsize=14, fontweight='bold')
 plt.tight_layout()
-save_figure('visualisations/topics/topic_distribution.png', fig, dpi=150, bbox_inches='tight')
-print(f"✓ Saved visualisations/topics/topic_distribution.png\n")
+save_figure(f'visualisations/topics/{output_prefix}topic_distribution.png', fig, dpi=150, bbox_inches='tight')
+print(f"✓ Saved visualisations/topics/{output_prefix}topic_distribution.png\n")
 plt.close()
 
 # 4. Individual high-resolution wordclouds
@@ -180,7 +193,7 @@ for topic in topic_data:
     plt.axis('off')
     plt.tight_layout()
     fig = plt.gcf()
-    save_figure(f"visualisations/topics/wordclouds/topic_{topic['topic_id']:02d}.png", 
+    save_figure(f"visualisations/topics/wordclouds/{output_prefix}topic_{topic['topic_id']:02d}.png", 
                 fig, dpi=150, bbox_inches='tight')
     plt.close()
 
@@ -239,16 +252,16 @@ cbar.ax.set_ylabel("Keyword Importance", rotation=-90, va="bottom")
 
 ax.set_title("Top 10 Topics - Keyword Importance Heatmap", fontsize=12, fontweight='bold')
 fig.tight_layout()
-save_figure('visualisations/topics/keyword_heatmap.png', fig, dpi=150, bbox_inches='tight')
-print(f"✓ Saved visualisations/topics/keyword_heatmap.png\n")
+save_figure(f'visualisations/topics/{output_prefix}keyword_heatmap.png', fig, dpi=150, bbox_inches='tight')
+print(f"✓ Saved visualisations/topics/{output_prefix}keyword_heatmap.png\n")
 plt.close()
 
 # Summary
 print("=" * 70)
 print("Done! Generated:")
-print("  - visualisations/topics/wordclouds_all_topics.png (overview grid)")
-print("  - visualisations/topics/topic_overview.png (bar chart)")
-print("  - visualisations/topics/topic_distribution.png (pie chart)")
-print("  - visualisations/topics/keyword_heatmap.png (heatmap)")
-print("  - visualisations/topics/wordclouds/topic_XX.png (individual)")
+print(f"  - visualisations/topics/{output_prefix}wordclouds_all_topics.png (overview grid)")
+print(f"  - visualisations/topics/{output_prefix}topic_overview.png (bar chart)")
+print(f"  - visualisations/topics/{output_prefix}topic_distribution.png (pie chart)")
+print(f"  - visualisations/topics/{output_prefix}keyword_heatmap.png (heatmap)")
+print(f"  - visualisations/topics/wordclouds/{output_prefix}topic_XX.png (individual)")
 print("=" * 70)

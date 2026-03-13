@@ -127,17 +127,31 @@ def get_output_paths(domain_prefix=None):
     
     Args:
         domain_prefix (str, optional): Domain prefix to add to filenames.
-                                      If None, uses default paths.
+        If None, uses default paths.
     
     Returns:
         tuple: (output_json_path, output_model_path)
     """
+    json_path = get_topic_results_path(domain_prefix)
     if domain_prefix:
-        output_json = f"data/{domain_prefix}_topic_model_results.json"
-        output_model = f"models/{domain_prefix}_topic_model_bertopic"
+        model_path = f"models/{domain_prefix}_topic_model_bertopic"
     else:
-        output_json = "data/topic_model_results.json"
-        output_model = "models/topic_model_bertopic"
+        model_path = "models/topic_model_bertopic"
     
-    return output_json, output_model
+    return json_path, model_path
+
+def get_topic_results_path(domain_prefix=None):
+    """Generate the path to topic model results JSON file.
+    
+    Args:
+        domain_prefix (str, optional): Domain prefix to add to filename.
+        If None, uses default path.
+    
+    Returns:
+        str: Path to topic_model_results.json file
+    """
+    if domain_prefix:
+        return f"data/{domain_prefix}_topic_model_results.json"
+    else:
+        return "data/topic_model_results.json"
 
