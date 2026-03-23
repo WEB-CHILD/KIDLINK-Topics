@@ -61,6 +61,15 @@ combined_stopwords = load_custom_stopwords()
 documents_filtered = [remove_stopwords(doc, combined_stopwords) for doc in documents]
 print(f"✓ Stopwords removed\n")
 
+# Calculate adaptive min_df based on dataset size
+# Small datasets get lower threshold to avoid excluding too many words
+# Large datasets get higher threshold to filter noise
+num_docs = len(documents_filtered)
+# Use percentage-based min_df (0.1% to 1%) so it scales to document subsets too
+min_df_percentage = max(0.001, min(0.01, 10 / num_docs)) if num_docs > 0 else 0.001
+print(f"Dataset size: {num_docs} documents")
+print(f"Adaptive min_df: {min_df_percentage*100:.2f}% (words must appear in this % of documents)\n")
+
 # 3. Create multilingual embedding model
 print("Step 3: Loading multilingual embedding model...")
 # Use multilingual model that supports Danish, Norwegian, English, Spanish, etc.
@@ -75,7 +84,8 @@ vectorizer_model = CountVectorizer(
     stop_words=list(combined_stopwords),
     max_features=5000,
     ngram_range=(1, 2),  # Include bigrams for better topics
-    min_df=5  # Ignore rare terms
+    min_df=min_df_percentage,  # Percentage-based: scales to document subsets
+    max_df=0.95  # Exclude words in >95% of documents (likely stopwords we missed)
 )
 
 # Initialize BERTopic with custom settings
