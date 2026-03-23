@@ -2,6 +2,7 @@
 import pandas as pd
 
 import nltk
+from enum import Enum
 from sklearn.feature_extraction.text import TfidfVectorizer, ENGLISH_STOP_WORDS
 from nltk.corpus import stopwords
 
@@ -67,6 +68,17 @@ def load_custom_stopwords():
 
     return combined_stopwords
 
+
+class Device(Enum):
+    """Enumeration of supported device strings for PyTorch/transformers.
+
+    Values match the strings accepted by libraries such as `torch` and
+    `sentence-transformers` (e.g. 'cuda', 'mps', 'cpu').
+    """
+    CUDA = "cuda"
+    MPS = "mps"
+    CPU = "cpu"
+
 def remove_stopwords(text, combined_stopwords):
     """Remove stopwords from text, tokenizing on whitespace."""
     if not isinstance(text, str):
@@ -100,25 +112,25 @@ def get_device():
     """Detect and return the best available device for PyTorch computation.
     
     Returns:
-        str: Device string ('cuda', 'mps', or 'cpu')
+        Device: A `Device` enum value (Device.CUDA, Device.MPS or Device.CPU)
     """
     import torch
     
     # Check for NVIDIA CUDA (Linux/Windows with NVIDIA GPU)
     if torch.cuda.is_available():
-        device = "cuda"
+        device = Device.CUDA
         device_name = torch.cuda.get_device_name(0)
         print(f"✓ Using NVIDIA GPU: {device_name}\n")
         return device
     
     # Check for Apple Silicon GPU (macOS with M1/M2/M3/M4)
     if torch.backends.mps.is_available():
-        device = "mps"
+        device = Device.MPS
         print("✓ Using Apple Silicon GPU (MPS) for acceleration\n")
         return device
     
     # Fall back to CPU
-    device = "cpu"
+    device = Device.CPU
     print("⚠ No GPU available, using CPU\n")
     return device
 

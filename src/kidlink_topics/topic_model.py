@@ -6,12 +6,9 @@ This model is multilingual and aims at producing topics across languages.
 
 
 Usage:
-    python topic_model.py [CSV_PATH] [--domain-prefix PREFIX]
+    python topic_model.py [CSV_PATH]
     
     CSV_PATH: Path to the CSV file (default: data/docs.csv)
-    --domain-prefix PREFIX: Optional domain prefix for output filenames
-                           (e.g., "kidlink_org_dk"). If not provided,
-                           outputs use default names.
 
 Required CSV columns:
 - `content`: The text content of each document (string). Rows with empty `content` are dropped.
@@ -73,8 +70,9 @@ print(f"Adaptive min_df: {min_df_percentage*100:.2f}% (words must appear in this
 # 3. Create multilingual embedding model
 print("Step 3: Loading multilingual embedding model...")
 # Use multilingual model that supports Danish, Norwegian, English, Spanish, etc.
-embedding_model = SentenceTransformer("paraphrase-multilingual-MiniLM-L12-v2", device=device)
-print(f"✓ Model loaded on {device}\n")
+# `get_device()` now returns a `Device` enum; pass its string value to the model.
+embedding_model = SentenceTransformer("paraphrase-multilingual-MiniLM-L12-v2", device=device.value)
+print(f"✓ Model loaded on {device.value}\n")
 
 # 4. Create BERTopic model with custom settings
 print("Step 4: Configuring BERTopic model...")
