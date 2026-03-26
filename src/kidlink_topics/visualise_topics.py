@@ -32,7 +32,7 @@ Visualizations Generated:
    - Useful for comparing keyword distributions across topics
 
 Input:
-    Expects JSON file at: data/topic_model_results_80_docs_50_keywords.json
+    Expects JSON file at: data/topic_model_results.json (or data/{PREFIX}_topic_model_results.json)
     Format: Array of topic objects with fields:
         - topic_id: Integer topic identifier
         - num_docs: Number of documents in topic
@@ -42,26 +42,76 @@ Input:
 
 Output:
     All visualizations saved to visualisations/topics/ directory:
-    - wordclouds_all_topics.png
-    - topic_overview.png
-    - topic_distribution.png
-    - keyword_heatmap.png
-    - wordclouds/topic_XX.png (one per topic)
+    - {PREFIX_}wordclouds_all_topics.png
+    - {PREFIX_}topic_overview.png
+    - {PREFIX_}topic_distribution.png
+    - {PREFIX_}keyword_heatmap.png
+    - wordclouds/{PREFIX_}topic_XX.png (one per topic)
 
 Usage:
     python visualise_topics.py
+    python visualise_topics.py --domain-prefix kidlink_org_dk
 """
 import json
+import argparse
 import matplotlib.pyplot as plt
 from wordcloud import WordCloud
 import numpy as np
 import os
-from utils import save_figure
+from utils import save_figure, get_topic_results_path, find_cjk_font
+
+
+# `find_cjk_font` moved to `utils.py`
+
+# Parse command-line arguments
+parser = argparse.ArgumentParser(description="Generate topic model visualizations")
+parser.add_argument("--domain-prefix", type=str, default=None, help="Optional domain prefix for input/output filenames (e.g., 'kidlink_org_dk')")
+args = parser.parse_args()
+
+domain_prefix = args.domain_prefix
+
+# Derive a displayable domain name from the domain prefix.
+# Keep `output_prefix` (used for filenames) unchanged; only alter the
+# human-readable `display_domain` that appears inside the visuals.
+import re
+
+display_domain = None
+if domain_prefix:
+    # If the prefix starts with 'att' or 'p' + digits followed by an underscore,
+    # strip that leading portion for display (e.g. 'att16_refugees-dk' -> 'refugees-dk').
+    m = re.match(r'^(?:att|p)\d+_(.+)$', domain_prefix)
+    if m:
+        domain_only = m.group(1)
+    else:
+        # Fallback: if there is an underscore, take the part after it; otherwise use full prefix
+        if "_" in domain_prefix:
+            domain_only = domain_prefix.split("_", 1)[1]
+        else:
+            domain_only = domain_prefix
+
+    # Replace dashes with dots for nicer display
+    display_domain = domain_only.replace("-", ".")
+else:
+    display_domain = None
+
+# Determine input and output paths based on domain prefix
+input_json = get_topic_results_path(domain_prefix)
+output_prefix = f"{domain_prefix}_" if domain_prefix else ""
 
 print("Loading topic model results...")
-with open("data/topic_model_results.json", 'r', encoding='utf-8') as f:
+with open(input_json, 'r', encoding='utf-8') as f:
     topic_data = json.load(f)
-print(f"✓ Loaded {len(topic_data)} topics\n")
+print(f"✓ Loaded {len(topic_data)} topics from {input_json}\n")
+
+# Find CJK font for proper character rendering
+cjk_font = find_cjk_font()
+if cjk_font:
+    print(f"✓ Using CJK-compatible font: {cjk_font}\n")
+    # Configure matplotlib to use the CJK font for all text rendering
+    plt.rcParams['font.sans-serif'] = [cjk_font]
+    plt.rcParams['axes.unicode_minus'] = False
+else:
+    print("⚠ No CJK font found - wordclouds may not display non-Latin characters properly\n")
 
 # Create output directory structure
 os.makedirs('visualisations/topics/wordclouds', exist_ok=True)
@@ -85,12 +135,15 @@ for i, topic in enumerate(topic_data):
     
     # Generate wordcloud
     wc = WordCloud(width=400, height=300, background_color='white', 
-                   colormap='plasma', relative_scaling=0.5).generate_from_frequencies(word_freq)
+                   colormap='plasma', relative_scaling=0.5,
+                   font_path=cjk_font).generate_from_frequencies(word_freq)
     
     axes[i].imshow(wc, interpolation='bilinear')
     topic_name = topic.get('name', f"Topic {topic['topic_id']}")
-    axes[i].set_title(f"{topic_name}\n({topic['num_docs']} docs)", 
-                      fontsize=9, fontweight='bold')
+    title_lines = [f"{topic_name}", f"({topic['num_docs']} docs)"]
+    if display_domain:
+        title_lines.append(display_domain)
+    axes[i].set_title("\n".join(title_lines), fontsize=9, fontweight='bold')
     axes[i].axis('off')
 
 # Hide unused subplots
@@ -98,8 +151,8 @@ for i in range(num_topics, len(axes)):
     axes[i].axis('off')
 
 plt.tight_layout()
-save_figure('visualisations/topics/wordclouds_all_topics.png', fig, dpi=150, bbox_inches='tight')
-print(f"✓ Saved visualisations/topics/wordclouds_all_topics.png\n")
+save_figure(f'visualisations/topics/{output_prefix}wordclouds_all_topics.png', fig, dpi=150, bbox_inches='tight')
+print(f"✓ Saved visualisations/topics/{output_prefix}wordclouds_all_topics.png\n")
 plt.close()
 
 # 2. Topic sizes bar chart with top keywords
@@ -118,12 +171,15 @@ ax.set_yticks(y_pos)
 ax.set_yticklabels([f"T{tid}: {kw}" for tid, kw in zip(topic_ids, top_keywords)], 
                     fontsize=8)
 ax.set_xlabel('Number of Documents', fontsize=10)
-ax.set_title('Topic Sizes and Top 5 Keywords', fontsize=12, fontweight='bold')
+title = 'Topic Sizes and Top 5 Keywords'
+if display_domain:
+    title = f"{title} — {display_domain}"
+ax.set_title(title, fontsize=12, fontweight='bold')
 ax.invert_yaxis()
 ax.grid(axis='x', alpha=0.3, linestyle='--')
 plt.tight_layout()
-save_figure('visualisations/topics/topic_overview.png', fig, dpi=150, bbox_inches='tight')
-print(f"✓ Saved visualisations/topics/topic_overview.png\n")
+save_figure(f'visualisations/topics/{output_prefix}topic_overview.png', fig, dpi=150, bbox_inches='tight')
+print(f"✓ Saved visualisations/topics/{output_prefix}topic_overview.png\n")
 plt.close()
 
 # 3. Topic distribution pie chart (top 10 topics)
@@ -152,10 +208,13 @@ for autotext in autotexts:
     autotext.set_fontweight('bold')
     autotext.set_fontsize(9)
 
-ax.set_title('Topic Distribution (Top 10 Topics)', fontsize=14, fontweight='bold')
+title = 'Topic Distribution (Top 10 Topics)'
+if display_domain:
+    title = f"{title} — {display_domain}"
+ax.set_title(title, fontsize=14, fontweight='bold')
 plt.tight_layout()
-save_figure('visualisations/topics/topic_distribution.png', fig, dpi=150, bbox_inches='tight')
-print(f"✓ Saved visualisations/topics/topic_distribution.png\n")
+save_figure(f'visualisations/topics/{output_prefix}topic_distribution.png', fig, dpi=150, bbox_inches='tight')
+print(f"✓ Saved visualisations/topics/{output_prefix}topic_distribution.png\n")
 plt.close()
 
 # 4. Individual high-resolution wordclouds
@@ -170,17 +229,20 @@ for topic in topic_data:
         word_freq = {word: len(keywords) - idx for idx, word in enumerate(keywords)}
     
     wc = WordCloud(width=800, height=600, background_color='white',
-                   colormap='plasma', relative_scaling=0.5).generate_from_frequencies(word_freq)
+                   colormap='plasma', relative_scaling=0.5,
+                   font_path=cjk_font).generate_from_frequencies(word_freq)
     
     plt.figure(figsize=(10, 7))
     plt.imshow(wc, interpolation='bilinear')
     topic_name = topic.get('name', f"Topic {topic['topic_id']}")
-    plt.title(f"{topic_name} - {topic['num_docs']} documents", 
-              fontsize=14, fontweight='bold')
+    title = f"{topic_name} - {topic['num_docs']} documents"
+    if display_domain:
+        title = f"{title} — {display_domain}"
+    plt.title(title, fontsize=14, fontweight='bold')
     plt.axis('off')
     plt.tight_layout()
     fig = plt.gcf()
-    save_figure(f"visualisations/topics/wordclouds/topic_{topic['topic_id']:02d}.png", 
+    save_figure(f"visualisations/topics/wordclouds/{output_prefix}topic_{topic['topic_id']:02d}.png", 
                 fig, dpi=150, bbox_inches='tight')
     plt.close()
 
@@ -237,18 +299,21 @@ plt.setp(ax.get_xticklabels(), rotation=45, ha="right", rotation_mode="anchor")
 cbar = ax.figure.colorbar(im, ax=ax)
 cbar.ax.set_ylabel("Keyword Importance", rotation=-90, va="bottom")
 
-ax.set_title("Top 10 Topics - Keyword Importance Heatmap", fontsize=12, fontweight='bold')
+title = "Top 10 Topics - Keyword Importance Heatmap"
+if display_domain:
+    title = f"{title} — {display_domain}"
+ax.set_title(title, fontsize=12, fontweight='bold')
 fig.tight_layout()
-save_figure('visualisations/topics/keyword_heatmap.png', fig, dpi=150, bbox_inches='tight')
-print(f"✓ Saved visualisations/topics/keyword_heatmap.png\n")
+save_figure(f'visualisations/topics/{output_prefix}keyword_heatmap.png', fig, dpi=150, bbox_inches='tight')
+print(f"✓ Saved visualisations/topics/{output_prefix}keyword_heatmap.png\n")
 plt.close()
 
 # Summary
 print("=" * 70)
 print("Done! Generated:")
-print("  - visualisations/topics/wordclouds_all_topics.png (overview grid)")
-print("  - visualisations/topics/topic_overview.png (bar chart)")
-print("  - visualisations/topics/topic_distribution.png (pie chart)")
-print("  - visualisations/topics/keyword_heatmap.png (heatmap)")
-print("  - visualisations/topics/wordclouds/topic_XX.png (individual)")
+print(f"  - visualisations/topics/{output_prefix}wordclouds_all_topics.png (overview grid)")
+print(f"  - visualisations/topics/{output_prefix}topic_overview.png (bar chart)")
+print(f"  - visualisations/topics/{output_prefix}topic_distribution.png (pie chart)")
+print(f"  - visualisations/topics/{output_prefix}keyword_heatmap.png (heatmap)")
+print(f"  - visualisations/topics/wordclouds/{output_prefix}topic_XX.png (individual)")
 print("=" * 70)

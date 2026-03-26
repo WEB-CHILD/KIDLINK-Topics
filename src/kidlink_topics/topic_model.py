@@ -16,17 +16,23 @@ Required CSV columns:
 
 Example CSV header:
     id,content
+
+Examples:
+    python topic_model.py
+    python topic_model.py data/docs.csv
+    python topic_model.py data/docs.csv --domain-prefix kidlink_org_dk
 """
 import os
 import sys
 import shutil
+import argparse
 import pandas as pd
 import numpy as np
 import torch
 from bertopic import BERTopic
 from sentence_transformers import SentenceTransformer
 from sklearn.feature_extraction.text import CountVectorizer
-from utils import load_csv, load_custom_stopwords, remove_stopwords, save_array_to_json, get_device
+from utils import load_csv, load_custom_stopwords, remove_stopwords, save_array_to_json, get_device, get_output_paths
 
 MIN_DOCUMENTS_PR_TOPIC = 80  # Minimum documents for a created topic
 AMOUNT_OF_KEYWORDS_PR_TOPIC = 50  # Number of keywords to extract per topic
@@ -34,8 +40,14 @@ AMOUNT_OF_KEYWORDS_PR_TOPIC = 50  # Number of keywords to extract per topic
 # Detect and use best available device (CUDA for NVIDIA, MPS for Apple Silicon, CPU fallback)
 device = get_device()
 
-# Parse command-line argument for CSV path
-csv_path = sys.argv[1] if len(sys.argv) > 1 else "data/docs.csv"
+# Parse command-line arguments
+parser = argparse.ArgumentParser(description="Multilingual topic modeling using BERTopic")
+parser.add_argument("csv_path", nargs="?", default="data/docs.csv", help="Path to the CSV file (default: data/docs.csv)")
+parser.add_argument("--domain-prefix", type=str, default=None, help="Optional domain prefix for output filenames (e.g., 'kidlink_org_dk')")
+args = parser.parse_args()
+
+csv_path = args.csv_path
+domain_prefix = args.domain_prefix
 
 # 1. Load CSV
 documents, doc_ids = load_csv(csv_path)
@@ -45,6 +57,15 @@ print("Step 2: Removing stopwords from documents...")
 combined_stopwords = load_custom_stopwords()
 documents_filtered = [remove_stopwords(doc, combined_stopwords) for doc in documents]
 print(f"✓ Stopwords removed\n")
+
+# Calculate adaptive min_df based on dataset size
+# Small datasets get lower threshold to avoid excluding too many words
+# Large datasets get higher threshold to filter noise
+num_docs = len(documents_filtered)
+# Use percentage-based min_df (0.1% to 1%) so it scales to document subsets too
+min_df_percentage = max(0.001, min(0.01, 10 / num_docs)) if num_docs > 0 else 0.001
+print(f"Dataset size: {num_docs} documents")
+print(f"Adaptive min_df: {min_df_percentage*100:.2f}% (words must appear in this % of documents)\n")
 
 # 3. Create multilingual embedding model
 print("Step 3: Loading multilingual embedding model...")
@@ -61,7 +82,8 @@ vectorizer_model = CountVectorizer(
     stop_words=list(combined_stopwords),
     max_features=5000,
     ngram_range=(1, 2),  # Include bigrams for better topics
-    min_df=5  # Ignore rare terms
+    min_df=min_df_percentage,  # Percentage-based: scales to document subsets
+    max_df=0.95  # Exclude words in >95% of documents (likely stopwords we missed)
 )
 
 # Initialize BERTopic with custom settings
@@ -150,14 +172,13 @@ for topic in topic_data[:10]:  # Print top 10 topics
     print("-" * 70)
 
 # 9. Save to file
-output_file = "data/topic_model_results.json"
+output_file, model_path = get_output_paths(domain_prefix)
 save_array_to_json(topic_data, output_file)
 
 print(f"\n✓ Full results saved to {output_file}")
 
 # 10. Save the model for later use
 print("\nStep 8: Saving topic model...")
-model_path = "models/topic_model_bertopic"
 # Create models directory if it doesn't exist
 os.makedirs(os.path.dirname(model_path) or ".", exist_ok=True)
 # Remove existing model if it exists to avoid conflicts

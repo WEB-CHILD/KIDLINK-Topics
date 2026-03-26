@@ -5,6 +5,8 @@ import nltk
 from enum import Enum
 from sklearn.feature_extraction.text import TfidfVectorizer, ENGLISH_STOP_WORDS
 from nltk.corpus import stopwords
+import sys
+from pathlib import Path
 
 
 def load_csv(file_path):
@@ -133,4 +135,66 @@ def get_device():
     device = Device.CPU
     print("⚠ No GPU available, using CPU\n")
     return device
+
+def find_cjk_font():
+    """Find a font that supports CJK characters (Chinese, Japanese, Korean)."""
+    font_candidates = []
+
+    if sys.platform == "darwin":  # macOS
+        font_candidates = [
+            "/Library/Fonts/AppleGothic.ttf",
+            "/System/Library/Fonts/PingFang.ttc",
+            "/Library/Fonts/Arial Unicode.ttf",
+            "/System/Library/Fonts/Hiragino Sans W3.otf",
+        ]
+    elif sys.platform == "linux":
+        font_candidates = [
+            "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
+            "/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttf",
+            "/usr/share/fonts/opentype/dejavu/DejaVuSans.ttf",
+        ]
+    elif sys.platform == "win32":  # Windows
+        font_candidates = [
+            "C:\\Windows\\Fonts\\msyh.ttc",  # Microsoft YaHei
+            "C:\\Windows\\Fonts\\Arial.ttf",
+        ]
+
+    for font_path in font_candidates:
+        if Path(font_path).exists():
+            return font_path
+
+    return None
+
+def get_output_paths(domain_prefix=None):
+    """Generate output file paths with optional domain prefix.
+    
+    Args:
+        domain_prefix (str, optional): Domain prefix to add to filenames.
+        If None, uses default paths.
+    
+    Returns:
+        tuple: (output_json_path, output_model_path)
+    """
+    json_path = get_topic_results_path(domain_prefix)
+    if domain_prefix:
+        model_path = f"models/{domain_prefix}_topic_model_bertopic"
+    else:
+        model_path = "models/topic_model_bertopic"
+    
+    return json_path, model_path
+
+def get_topic_results_path(domain_prefix=None):
+    """Generate the path to topic model results JSON file.
+    
+    Args:
+        domain_prefix (str, optional): Domain prefix to add to filename.
+        If None, uses default path.
+    
+    Returns:
+        str: Path to topic_model_results.json file
+    """
+    if domain_prefix:
+        return f"data/{domain_prefix}_topic_model_results.json"
+    else:
+        return "data/topic_model_results.json"
 

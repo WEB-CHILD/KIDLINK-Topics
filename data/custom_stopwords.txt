@@ -7,6 +7,16 @@ org
 com
 web
 page
+wp
+admin
+agent
+disallow
+php
+pages
+userpages
+user
+aspx
+aspy
 english
 en
 que

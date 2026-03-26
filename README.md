@@ -93,31 +93,52 @@ python -c "import nltk; nltk.download('stopwords')"
 Run the main topic modeling script to analyze the KIDLINK extraction from SolrWayback:
 
 ```bash
+# Basic usage (uses default data/docs.csv)
 python src/kidlink_topics/topic_model.py
+
+# With custom CSV file
+python src/kidlink_topics/topic_model.py data/solrwayback_kidlink-org-dk.csv
+
+# With domain prefix for output files (useful for multiple domains)
+python src/kidlink_topics/topic_model.py data/solrwayback_kidlink-org-dk.csv --domain-prefix kidlink_org_dk
+
+# Custom CSV with domain prefix
+python src/kidlink_topics/topic_model.py data/docs.csv --domain-prefix my_domain
 ```
+
+**Command-line options:**
+- `CSV_PATH`: Path to the CSV file (optional, default: `data/docs.csv`)
+- `--domain-prefix PREFIX`: Optional prefix for output filenames (e.g., `kidlink_org_dk`)
 
 **Configuration options** (edit in `topic_model.py`):
 - `MIN_DOCUMENTS_PR_TOPIC`: Minimum documents required to form a topic (default: 80)
 - `AMOUNT_OF_KEYWORDS_PR_TOPIC`: Number of keywords to extract per topic (default: 50)
 
 **Output:**
-- `data/topic_model_results.json`: Complete topic analysis with keywords and statistics
-- `models/topic_model_bertopic/`: Saved model for later use
+- Without prefix: `data/topic_model_results.json` and `models/topic_model_bertopic/`
+- With prefix: `data/{PREFIX}_topic_model_results.json` and `models/{PREFIX}_topic_model_bertopic/`
 
 ### 2. Visualize Topics
 
 Generate comprehensive visualizations of the topic model results:
 
 ```bash
+# With default topic model results
 python src/kidlink_topics/visualise_topics.py
+
+# With domain-prefixed results (must match domain prefix from step 1)
+python src/kidlink_topics/visualise_topics.py --domain-prefix kidlink_org_dk
 ```
 
+**Command-line options:**
+- `--domain-prefix PREFIX`: Optional domain prefix to match your topic model results (e.g., `kidlink_org_dk`)
+
 **Generates:**
-- `wordclouds_all_topics.png`: Grid overview of all topics
-- `topic_overview.png`: Bar chart with document counts and top keywords
-- `topic_distribution.png`: Pie chart showing topic proportions
-- `keyword_heatmap.png`: Heatmap of keyword importance across topics
-- `wordclouds/topic_XX.png`: Individual high-resolution wordclouds
+- `{PREFIX_}wordclouds_all_topics.png`: Grid overview of all topics
+- `{PREFIX_}topic_overview.png`: Bar chart with document counts and top keywords
+- `{PREFIX_}topic_distribution.png`: Pie chart showing topic proportions
+- `{PREFIX_}keyword_heatmap.png`: Heatmap of keyword importance across topics
+- `wordclouds/{PREFIX_}topic_XX.png`: Individual high-resolution wordclouds
 
 ### 3. Explore Specific Topics
 
