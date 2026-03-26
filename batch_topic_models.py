@@ -17,6 +17,7 @@ Usage:
 """
 
 import csv
+import argparse
 import subprocess
 import sys
 from pathlib import Path
@@ -25,7 +26,7 @@ import json
 import logging
 
 
-def setup_logging():
+def setup_logging(log_level: str = "INFO"):
     """Configure logging to both file and console."""
     log_dir = Path("logs")
     log_dir.mkdir(exist_ok=True)
@@ -34,7 +35,7 @@ def setup_logging():
     log_file = log_dir / f"batch_processing_{timestamp}.log"
     
     logging.basicConfig(
-        level=logging.INFO,
+        level=getattr(logging, log_level.upper(), logging.INFO),
         format="[%(asctime)s] %(levelname)s: %(message)s",
         handlers=[
             logging.FileHandler(log_file),
@@ -52,7 +53,7 @@ def validate_inputs(config_csv: Path, rows: list) -> bool:
     """
     logger = logging.getLogger()
     all_valid = True
-    MIN_ROWS = 150  # Minimum data rows required for UMAP dimensionality reduction
+    UMAP_MIN_ROWS = 150  # Minimum data rows required for UMAP dimensionality reduction
     
     for i, row in enumerate(rows):
         att = row.get("att", "").strip()
@@ -79,8 +80,8 @@ def validate_inputs(config_csv: Path, rows: list) -> bool:
             with open(csv_path, 'r', encoding='utf-8') as f:
                 row_count = sum(1 for _ in f) - 1  # -1 for header
             
-            if row_count < MIN_ROWS:
-                logger.warning(f"Row {i+2}: Skipping {att}_{domain} - only {row_count} documents (minimum: {MIN_ROWS})")
+            if row_count < UMAP_MIN_ROWS:
+                logger.warning(f"Row {i+2}: Skipping {att}_{domain} - only {row_count} documents (minimum: {UMAP_MIN_ROWS})")
                 row["_skip"] = True
             else:
                 row["_skip"] = False
@@ -139,6 +140,37 @@ def run_topic_model(att: str, domain: str, csv_path: str) -> tuple[bool, str]:
         return False, message
 
 
+def build_task_result(att: str, domain: str, csv_name: str) -> dict:
+    """Build the standardized result payload for a single batch task."""
+    return {
+        "att": att,
+        "domain": domain,
+        "csv_name": csv_name,
+        "domain_prefix": f"{att}_{domain}",
+    }
+
+
+def process_batch_row(row: dict, idx: int, total_rows: int, results: dict) -> None:
+    """Process one configuration row and store its outcome in the results mapping."""
+    logger = logging.getLogger()
+    att = row["att"].strip()
+    domain = row["domain"].strip()
+    csv_name = row["csv-name"].strip()
+    task_result = build_task_result(att, domain, csv_name)
+
+    if row.get("_skip", False):
+        results["skipped"].append(task_result)
+        return
+
+    logger.info(f"\n--- Task {idx}/{total_rows} ---")
+    success, message = run_topic_model(att, domain, csv_name)
+
+    if success:
+        results["successful"].append(task_result)
+    else:
+        results["failed"].append({**task_result, "error": message})
+
+
 def process_batch(config_csv: Path):
     """Process all topic models in batch."""
     logger = logging.getLogger()
@@ -174,39 +206,7 @@ def process_batch(config_csv: Path):
     start_time = datetime.now()
     
     for idx, row in enumerate(rows, start=1):
-        att = row["att"].strip()
-        domain = row["domain"].strip()
-        csv_name = row["csv-name"].strip()
-        domain_prefix = f"{att}_{domain}"
-        
-        # Skip if marked during validation
-        if row.get("_skip", False):
-            results["skipped"].append({
-                "att": att,
-                "domain": domain,
-                "csv_name": csv_name,
-                "domain_prefix": domain_prefix
-            })
-            continue
-        
-        logger.info(f"\n--- Task {idx}/{len(rows)} ---")
-        success, message = run_topic_model(att, domain, csv_name)
-        
-        if success:
-            results["successful"].append({
-                "att": att,
-                "domain": domain,
-                "csv_name": csv_name,
-                "domain_prefix": domain_prefix
-            })
-        else:
-            results["failed"].append({
-                "att": att,
-                "domain": domain,
-                "csv_name": csv_name,
-                "domain_prefix": domain_prefix,
-                "error": message
-            })
+        process_batch_row(row, idx, len(rows), results)
     
     # Summary
     elapsed = datetime.now() - start_time
@@ -234,20 +234,20 @@ def process_batch(config_csv: Path):
 
 def main():
     """Main entry point."""
-    if len(sys.argv) < 2:
-        print("Usage: python batch_topic_models.py <config_csv>")
-        print("\nExample:")
-        print("  python batch_topic_models.py workshop_participants.csv")
-        print("\nConfiguration CSV format (with header):")
-        print("  att,domain,csv-name")
-        print("  john_doe,healthcare,john_healthcare_data.csv")
-        print("  john_doe,education,john_education_data.csv")
-        sys.exit(1)
-    
-    config_csv = Path(sys.argv[1])
+    parser = argparse.ArgumentParser(description="Generate topic models in batch from a workshop configuration CSV")
+    parser.add_argument("config_csv", help="Path to the configuration CSV file")
+    parser.add_argument(
+        "--log-level",
+        default="INFO",
+        choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
+        help="Logging verbosity for console and file output (default: INFO)",
+    )
+    args = parser.parse_args()
+
+    config_csv = Path(args.config_csv)
     
     # Setup logging
-    log_file = setup_logging()
+    log_file = setup_logging(args.log_level)
     logger = logging.getLogger()
     
     logger.info("="*60)

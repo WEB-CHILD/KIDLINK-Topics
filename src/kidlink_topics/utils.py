@@ -5,6 +5,8 @@ import nltk
 from enum import Enum
 from sklearn.feature_extraction.text import TfidfVectorizer, ENGLISH_STOP_WORDS
 from nltk.corpus import stopwords
+import sys
+from pathlib import Path
 
 
 def load_csv(file_path):
@@ -133,6 +135,35 @@ def get_device():
     device = Device.CPU
     print("⚠ No GPU available, using CPU\n")
     return device
+
+def find_cjk_font():
+    """Find a font that supports CJK characters (Chinese, Japanese, Korean)."""
+    font_candidates = []
+
+    if sys.platform == "darwin":  # macOS
+        font_candidates = [
+            "/Library/Fonts/AppleGothic.ttf",
+            "/System/Library/Fonts/PingFang.ttc",
+            "/Library/Fonts/Arial Unicode.ttf",
+            "/System/Library/Fonts/Hiragino Sans W3.otf",
+        ]
+    elif sys.platform == "linux":
+        font_candidates = [
+            "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
+            "/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttf",
+            "/usr/share/fonts/opentype/dejavu/DejaVuSans.ttf",
+        ]
+    elif sys.platform == "win32":  # Windows
+        font_candidates = [
+            "C:\\Windows\\Fonts\\msyh.ttc",  # Microsoft YaHei
+            "C:\\Windows\\Fonts\\Arial.ttf",
+        ]
+
+    for font_path in font_candidates:
+        if Path(font_path).exists():
+            return font_path
+
+    return None
 
 def get_output_paths(domain_prefix=None):
     """Generate output file paths with optional domain prefix.

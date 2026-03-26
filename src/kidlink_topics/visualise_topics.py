@@ -58,42 +58,10 @@ import matplotlib.pyplot as plt
 from wordcloud import WordCloud
 import numpy as np
 import os
-import sys
-from pathlib import Path
-from utils import save_figure, get_topic_results_path
+from utils import save_figure, get_topic_results_path, find_cjk_font
 
 
-def find_cjk_font():
-    """Find a font that supports CJK characters (Chinese, Japanese, Korean)."""
-    # Font candidates for different platforms
-    font_candidates = []
-    
-    if sys.platform == "darwin":  # macOS
-        font_candidates = [
-            "/Library/Fonts/AppleGothic.ttf",
-            "/System/Library/Fonts/PingFang.ttc",
-            "/Library/Fonts/Arial Unicode.ttf",
-            "/System/Library/Fonts/Hiragino Sans W3.otf",
-        ]
-    elif sys.platform == "linux":
-        font_candidates = [
-            "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
-            "/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttf",
-            "/usr/share/fonts/opentype/dejavu/DejaVuSans.ttf",
-        ]
-    elif sys.platform == "win32":  # Windows
-        font_candidates = [
-            "C:\\Windows\\Fonts\\msyh.ttc",  # Microsoft YaHei
-            "C:\\Windows\\Fonts\\Arial.ttf",
-        ]
-    
-    # Find first available font
-    for font_path in font_candidates:
-        if Path(font_path).exists():
-            return font_path
-    
-    # Fallback: no font specified (system default)
-    return None
+# `find_cjk_font` moved to `utils.py`
 
 # Parse command-line arguments
 parser = argparse.ArgumentParser(description="Generate topic model visualizations")
