@@ -42,8 +42,12 @@ ENV/
 .cache/
 models/
 
+# Logs
+logs/
+
 # Data files (large CSVs)
 *.csv
+data/*.json
 
 # Output files
 *.html
