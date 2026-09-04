@@ -3,7 +3,7 @@
 Batch visualisation runner
 
 Reads a configuration CSV (same format as the batch topic script) and runs
-`src/kidlink_topics/visualise_topics.py --domain-prefix <att>_<domain>` for
+`src/web_topics/visualise_topics.py --domain-prefix <att>_<domain>` for
 each entry where the topic model outputs exist.
 
 Usage:
@@ -39,7 +39,7 @@ def run_visualisation_for(prefix: str, timeout: int = 1800) -> tuple[bool,str]:
     logger = logging.getLogger()
     cmd = [
         "python",
-        "src/kidlink_topics/visualise_topics.py",
+        "src/web_topics/visualise_topics.py",
         "--domain-prefix",
         prefix
     ]

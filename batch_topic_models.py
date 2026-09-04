@@ -103,7 +103,7 @@ def run_topic_model(att: str, domain: str, csv_path: str) -> tuple[bool, str]:
     domain_prefix = f"{att}_{domain}"
     cmd = [
         "python",
-        "src/kidlink_topics/topic_model.py",
+        "src/web_topics/topic_model.py",
         f"data/{csv_path}",
         "--domain-prefix",
         domain_prefix

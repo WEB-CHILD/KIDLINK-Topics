@@ -1,14 +1,16 @@
-# KIDLINKTopics: Multilingual Topic Model of KIDLINK Sources from the Internet Archive
+# WEBTopics: Multilingual Topic Modeling of Archived Web Sources
 [![DOI](https://zenodo.org/badge/1093360374.svg)](https://doi.org/10.5281/zenodo.17571565)
 
-Multilingual topic modeling analysis of archived webpages from KIDLINK extracted from the Internet Archive.
+Multilingual topic modeling analysis of archived webpages extracted from a web archive.
 The topic model is made using BERTopic and transformer-based embeddings.
 
 ## Overview
 
-This project performs topic modeling on historical KIDLINK content archived by the Internet Archive and loaded into a local instance of Solrwayback. KIDLINK was a global educational network that connected youth (up to age 15) from around the world for collaborative learning and cultural exchange. The archive contains multilingual content in all participating languagues including Danish, Norwegian, English, Spanish, German, Italian, Portuguese, and other languages.
+This project performs topic modeling on historical web content from a web archive, such as material archived by the Internet Archive and loaded into a local instance of SolrWayback. It works with any archived web corpus exported to CSV, and handles multilingual collections containing Danish, Norwegian, English, Spanish, German, Italian, Portuguese, and other languages.
 
-Using state-of-the-art NLP techniques (BERTopic with multilingual sentence transformers), this project identifies and visualizes the main themes and topics discussed across the KIDLINK network during its active years. The topics are used as a keyword discovery tool, so that manual queries in SolrWayback can be created from a better starting point.
+Using state-of-the-art NLP techniques (BERTopic with multilingual sentence transformers), this project identifies and visualizes the main themes and topics discussed across a collection during the years it was archived. The topics are used as a keyword discovery tool, so that manual queries in SolrWayback can be created from a better starting point.
+
+The examples throughout this README use an extraction of the KIDLINK educational network (`kidlink.org.dk`), which is the corpus the project was originally built for, but nothing in the code is specific to it.
 
 ## Features
 
@@ -21,14 +23,14 @@ Using state-of-the-art NLP techniques (BERTopic with multilingual sentence trans
 ## Project Structure
 
 ```
-KIDLINKTopics/
+WEBTopics/
 ├── data/
-│   ├── solrwayback_kidlink-org-dk.csv           # Source data
+│   ├── solrwayback_kidlink-org-dk.csv           # Source data (example extraction)
 │   ├── custom_stopwords.txt                     # Domain-specific stopwords
 ├── models/
 │   └── topic_model_bertopic                     # Saved BERTopic model
 ├── src/
-│   └── kidlink_topics/
+│   └── web_topics/
 │       ├── topic_model.py                       # Main topic modeling script - creates the model
 │       ├── utils.py                             # Utility functions
 │       ├── visualise_topics.py                  # Generate visualizations for the topic model
@@ -56,7 +58,7 @@ KIDLINKTopics/
 1. Clone the repository:
 ```bash
 git clone <repository-url>
-cd KIDLINKTopics
+cd WEBTopics
 ```
 
 2. Create and activate a virtual environment:
@@ -90,20 +92,20 @@ python -c "import nltk; nltk.download('stopwords')"
 
 ### 1. Generate Topic Model
 
-Run the main topic modeling script to analyze the KIDLINK extraction from SolrWayback:
+Run the main topic modeling script to analyze an extraction from SolrWayback:
 
 ```bash
 # Basic usage (uses default data/docs.csv)
-python src/kidlink_topics/topic_model.py
+python src/web_topics/topic_model.py
 
 # With custom CSV file
-python src/kidlink_topics/topic_model.py data/solrwayback_kidlink-org-dk.csv
+python src/web_topics/topic_model.py data/solrwayback_kidlink-org-dk.csv
 
 # With domain prefix for output files (useful for multiple domains)
-python src/kidlink_topics/topic_model.py data/solrwayback_kidlink-org-dk.csv --domain-prefix kidlink_org_dk
+python src/web_topics/topic_model.py data/solrwayback_kidlink-org-dk.csv --domain-prefix kidlink_org_dk
 
 # Custom CSV with domain prefix
-python src/kidlink_topics/topic_model.py data/docs.csv --domain-prefix my_domain
+python src/web_topics/topic_model.py data/docs.csv --domain-prefix my_domain
 ```
 
 **Command-line options:**
@@ -124,10 +126,10 @@ Generate comprehensive visualizations of the topic model results:
 
 ```bash
 # With default topic model results
-python src/kidlink_topics/visualise_topics.py
+python src/web_topics/visualise_topics.py
 
 # With domain-prefixed results (must match domain prefix from step 1)
-python src/kidlink_topics/visualise_topics.py --domain-prefix kidlink_org_dk
+python src/web_topics/visualise_topics.py --domain-prefix kidlink_org_dk
 ```
 
 **Command-line options:**
@@ -145,13 +147,13 @@ python src/kidlink_topics/visualise_topics.py --domain-prefix kidlink_org_dk
 View all keywords for a specific topic:
 
 ```bash
-python src/kidlink_topics/get_keywords_from_topic.py <topic_number>
+python src/web_topics/get_keywords_from_topic.py <topic_number>
 ```
 
 Example:
 ```bash
-python src/kidlink_topics/get_keywords_from_topic.py 0
-python src/kidlink_topics/get_keywords_from_topic.py 5 data/topic_model_results.json
+python src/web_topics/get_keywords_from_topic.py 0
+python src/web_topics/get_keywords_from_topic.py 5 data/topic_model_results.json
 ```
 
 ### 4. Search Topics
@@ -159,7 +161,7 @@ python src/kidlink_topics/get_keywords_from_topic.py 5 data/topic_model_results.
 Search for topics containing specific keywords:
 
 ```bash
-python src/kidlink_topics/search_topics.py
+python src/web_topics/search_topics.py
 ```
 
 ## Model Configuration
@@ -178,7 +180,7 @@ python src/kidlink_topics/search_topics.py
 Custom stopwords are defined in `data/custom_stopwords.txt` and include:
 
 - Web-related terms (html, http, www)
-- KIDLINK founder name (Odd Presno)
+- Corpus-specific names (e.g. Odd Presno, the KIDLINK founder, in the example data)
 - Years and dates
 - Search-related terms (advanced, search)
 - Language-specific common words
@@ -187,7 +189,7 @@ The system combines these with NLTK stopwords for **14 languages**:
 
 - Danish, Norwegian, English, Spanish, German, Italian, Portuguese, French, Swedish, Dutch, Finnish, Russian, Turkish, Arabic
 
-This comprehensive multilingual stopword coverage ensures that common words across all major KIDLINK languages are filtered out during topic modeling, allowing the algorithm to focus on meaningful content-specific terms.
+This comprehensive multilingual stopword coverage ensures that common words across all major languages in the corpus are filtered out during topic modeling, allowing the algorithm to focus on meaningful content-specific terms.
 
 ### Iteration History
 
@@ -256,9 +258,9 @@ When modifying the model configuration:
 If you use this project in your research, please cite it using the following BibTeX entry:
 
 ```bibtex
-@software{kidlink_topics_2025,
+@software{web_topics_2025,
   author       = {{Johnston, Victor Harbo}},
-  title        = {KIDLINKTopics: Multilingual Topic Model of KIDLINK Sources from the Internet Archive},
+  title        = {WEBTopics: Multilingual Topic Modeling of Archived Web Sources},
   year         = {2025},
   publisher    = {Zenodo},
   doi          = {10.5281/zenodo.17571565},

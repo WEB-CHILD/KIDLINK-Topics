@@ -1,6 +1,6 @@
 {
-  "title": "KIDLINKTopics: Multilingual Topic Modeling of KIDLINK Archive",
-  "description": "Multilingual topic modeling analysis of archived webpages from KIDLINK extracted from the Internet Archive. This project performs topic modeling on historical KIDLINK content using BERTopic and transformer-based embeddings to identify and visualize the main themes discussed across the global KIDLINK educational network.",
+  "title": "WEBTopics: Multilingual Topic Modeling of Archived Web Sources",
+  "description": "Multilingual topic modeling analysis of archived webpages extracted from a web archive. This project performs topic modeling on historical web content using BERTopic and transformer-based embeddings to identify and visualize the main themes discussed across an archived collection.",
   "creators": [
     {
       "name": "Victor Harbo Johnston",
@@ -15,12 +15,8 @@
     "topic modeling",
     "BERTopic",
     "multilingual NLP",
-    "KIDLINK",
-    "educational networks",
     "natural language processing",
-    "sentence transformers",
-    "cultural exchange",
-    "youth education"
+    "sentence transformers"
   ],
   "license": {
     "id": "MIT"
